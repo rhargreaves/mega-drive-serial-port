@@ -15,4 +15,14 @@ Tools and docs for using a SEGA Mega Drive controller port in serial mode
 | 8 | Gnd | Gnd |
 | 9 | Start / Button C | Rx | TR (D5) |
 
-\* Pins in parallel mode can have two interpretations, depending on if `Select` is low or high (L / H)
+\* Pins in parallel mode can have two interpretations, depending on if `Select` has been set low or high (L / H) from the console.
+
+### Controller Plug
+Looking directly at plug (Female 9-pin Type D)
+
+```
+-------------
+\ 5 4 3 2 1 /
+ \ 9 8 7 6 /
+  ---------
+```
