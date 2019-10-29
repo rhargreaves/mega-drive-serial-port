@@ -39,3 +39,13 @@ From the [datasheet](https://www.ftdichip.com/Support/Documents/DataSheets/Cable
 |Orange| TXD |Output |Transmit Asynchronous Data output.|
 |Yellow| RXD| Input| Receive Asynchronous Data input.|
 |Green |RTS#| Output| Request To Send Control Output / Handshake signal.|
+
+## Mappings
+
+| FTDI Cable | Mega Drive Port Pin |
+|------------|-----------------|
+| Orange (TXD) | 9 (Rx)        |
+| Yellow (RXD) | 6 (Tx)        |
+| Black (GND) | 8 (Tx)         |
+
+
