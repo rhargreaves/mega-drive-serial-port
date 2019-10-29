@@ -26,3 +26,16 @@ Looking directly at plug (Female 9-pin Type D)
  \ 9 8 7 6 /
   ---------
 ```
+
+## FTDI USB TTL Serial Cable
+
+From the [datasheet](https://www.ftdichip.com/Support/Documents/DataSheets/Cables/DS_TTL-232RG_CABLES.pdf):
+
+| Colour | Name | Type | Description |
+|--------|------|------|-------------|
+|Black |GND |GND |Device ground supply pin.|
+|Brown |CTS# |Input |Clear to Send Control input / Handshake signal.|
+|Red |VCC |Output or input | Power Supply Output except for the TTL-232RG-VIPWE were this is an input and power is supplied by the application interface logic. |
+|Orange| TXD |Output |Transmit Asynchronous Data output.|
+|Yellow| RXD| Input| Receive Asynchronous Data input.|
+|Green |RTS#| Output| Request To Send Control Output / Handshake signal.|
