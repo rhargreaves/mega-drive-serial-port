@@ -3,7 +3,7 @@ Tools and docs for using a SEGA Mega Drive controller port in serial mode
 
 ## Controller Port Pinout
 
-| Pin | Parallel Mode * | Serial Mode | Ctrl Bit |
+| Pin | Parallel Mode * | Serial Mode | I/O Reg Bit |
 |-----|-----------|--------|--------------|
 | 1 | Up | | UP (D0) |
 | 2 | Down | | DOWN (D1) |
