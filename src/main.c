@@ -3,6 +3,6 @@
 int main()
 {
     while (TRUE) {
-        VDP_WaitForVSync();
+        VDP_waitVSync();
     }
 }
