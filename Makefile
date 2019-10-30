@@ -31,7 +31,7 @@ INCS = -I. \
 	-Ires
 CCFLAGS = -Wall -std=c11 -Werror \
 	-fno-builtin -DBUILD='"$(BUILD)"' \
-	-m68000 -O3 -c -fomit-frame-pointer -g
+	-m68000 -O0 -c -fomit-frame-pointer -g
 Z80FLAGS = -vb2
 ASFLAGS = -m68000 --register-prefix-optional
 LIBS =  -L$(GENDEV)/m68k-elf/lib -L$(GENDEV)/lib/gcc/m68k-elf/$(GCC_VER)/* -L$(GENDEV)/sgdk/lib -lmd -lnosys
