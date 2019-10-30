@@ -1,8 +1,6 @@
 #include "types.h"
 
-__attribute__((externally_visible))
-const struct
-{
+__attribute__((externally_visible)) const struct {
     char console[16]; /* Console Name (16) */
     char copyright[16]; /* Copyright Information (16) */
     char title_local[48]; /* Domestic Name (48) */
@@ -21,23 +19,9 @@ const struct
     char modem_support[12]; /* Modem Support (24) */
     char notes[40]; /* Memo (40) */
     char region[16]; /* Country Support (16) */
-} rom_header = {
-    "SEGA SSF        ",
-    "(C)ROB H. 2018  ",
-    "MIDI INTERFACE                                  ",
-    "MIDI INTERFACE                                  ",
-    "GM 00000000-00",
-    0x0000,
-    "JD              ",
-    0x00000000,
-    0x00100000,
-    0x00FF0000,
-    0x00FFFFFF,
-    "  ",
-    0x0000,
-    0x00200000,
-    0x002001FF,
-    "            ",
-    "                                        ",
-    "JUE             "
-};
+} rom_header = { "SEGA MEGA DRIVE ", "(C)ROB.H 2019   ",
+    "SAMPLE PROGRAM                                  ",
+    "SAMPLE PROGRAM                                  ", "GM 00000000-00",
+    0x0000, "JD              ", 0x00000000, 0x00100000, 0x00FF0000, 0x00FFFFFF,
+    "  ", 0x0000, 0x00200000, 0x002001FF, "            ",
+    "DEMONSTRATION PROGRAM                   ", "JUE             " };
