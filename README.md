@@ -46,6 +46,6 @@ From the [datasheet](https://www.ftdichip.com/Support/Documents/DataSheets/Cable
 |------------|-----------------|
 | Orange (TXD) | 9 (Rx)        |
 | Yellow (RXD) | 6 (Tx)        |
-| Black (GND) | 8 (Tx)         |
+| Black (GND) | 8 (Gnd)         |
 
 
