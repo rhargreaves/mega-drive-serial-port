@@ -133,7 +133,6 @@ boot/rom_head.bin: boot/rom_head.o
 	$(LD) $(LINKFLAGS) --oformat binary -o $@ $<
 
 clean:
-	$(MAKE) -C tests clean-target
 	$(RM) $(RESOURCES)
 	$(RM) *.o *.bin *.elf *.map *.iso
 	$(RM) boot/*.o boot/*.bin
