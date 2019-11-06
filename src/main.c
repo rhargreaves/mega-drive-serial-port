@@ -10,6 +10,8 @@
 #define SCTRL_2400_BPS 0x70
 #define SCTRL_4800_BPS 0x30
 
+#define GET_BIT(var, bit) ((var & (1 << bit)) == (1 << bit))
+
 void serial_init(void)
 {
     vs8* pb;
@@ -21,6 +23,32 @@ void serial_init(void)
     vs8* pb2;
     pb2 = (s8*)PORT2_CTRL;
     *pb2 = 0x7F; // TH-Int:OFF, PC6..PC0: OUTPUT.
+}
+
+void print_sctrl(void)
+{
+    vs8* pb;
+    pb = (s8*)PORT2_SCTRL;
+    s8 data = *pb;
+    VDP_drawText("BPS1 BPS0 SIN  SOUT RINT RERR RRDY TFUL", 0, 2);
+    for (u16 i = 0; i < 8; i++) {
+        char text[2];
+        sprintf(text, "%d", GET_BIT(data, 7 - i));
+        VDP_drawText(text, i * 5, 3);
+    }
+}
+
+void print_ctrl(void)
+{
+    vs8* pb;
+    pb = (s8*)PORT2_CTRL;
+    s8 data = *pb;
+    VDP_drawText("INT  PC6  PC5  PC4  PC3  PC2  PC1  PC0", 0, 5);
+    for (u16 i = 0; i < 8; i++) {
+        char text[2];
+        sprintf(text, "%d", GET_BIT(data, 7 - i));
+        VDP_drawText(text, i * 5, 6);
+    }
 }
 
 u8 _inbyte(void)
@@ -58,6 +86,9 @@ int main()
 {
     serial_init();
     while (TRUE) {
+        print_sctrl();
+        print_ctrl();
+
         for (u8 i = 0; i < 10; i++) {
             _outbyte((u8)'0' + i);
         }
