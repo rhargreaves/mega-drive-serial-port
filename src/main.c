@@ -10,7 +10,20 @@
 #define SCTRL_2400_BPS 0x70
 #define SCTRL_4800_BPS 0x30
 
+const u16 min_y = 10;
+const u16 max_x = 39;
+const u16 max_lines = 5;
+
+typedef struct Cursor Cursor;
+
+struct Cursor {
+    u16 x;
+    u16 y;
+};
+
 #define GET_BIT(var, bit) ((var & (1 << bit)) == (1 << bit))
+
+static void increment_cursor(Cursor* cur);
 
 void serial_init(void)
 {
@@ -78,23 +91,30 @@ void _outbyte(u8 c)
     *pb = byte;
 }
 
+static void increment_cursor(Cursor* cur)
+{
+    Cursor *cursor = cur;
+    cursor->x++;
+    if (cursor->x > max_x) {
+        cursor->y++;
+        cursor->x = 0;
+    }
+    if (cursor->y > max_lines) {
+        cursor->y = 0;
+    }
+}
+
+
 int main()
 {
     serial_init();
-
-    const u16 min_y = 10;
-    const u16 max_y = 15;
-
-    u16 pos_x = 0;
-    u16 pos_y = min_y;
 
     VDP_drawText("Mega Drive Serial Port Diagnostics", 3, 0);
     VDP_drawText("BPS1 BPS0 SIN  SOUT RINT RERR RRDY TFUL", 0, 2);
     VDP_drawText("INT  PC6  PC5  PC4  PC3  PC2  PC1  PC0", 0, 5);
     VDP_drawText("Recv:", 0, 9);
 
-
-
+    Cursor cur = { 0, 0 };
     while (TRUE) {
         print_sctrl();
         print_ctrl();
@@ -103,18 +123,13 @@ int main()
             u8 data = read();
             char buffer[2];
             buffer[0] = (char)data;
-            const u16 max_x = 39;
 
-            pos_x++;
-            if (pos_x > max_x) {
-                pos_y++;
-                pos_x = 0;
+            VDP_drawText(buffer, cur.x, cur.y + min_y);
+            increment_cursor(&cur);
+            if(cur.x == 0 && cur.y == 0)
+            {
+                VDP_clearTextArea(0, min_y, max_x + 1, max_lines + 1);
             }
-            if (pos_y > max_y) {
-                pos_y = min_y;
-                VDP_clearTextArea(0, min_y, max_x + 1, max_y - min_y + 1);
-            }
-            VDP_drawText(buffer, pos_x, pos_y);
         } else {
             VDP_waitVSync();
         }
