@@ -51,20 +51,16 @@ void print_ctrl(void)
     }
 }
 
-u8 _inbyte(void)
+u8 can_read(void)
 {
     vs8* pb = (s8*)PORT2_SCTRL;
-    u8 byte;
+    return *pb & 0x02;
+}
 
-    /* wait for RRDY high */
-    // while (*pb & 0x02) {
-    //     pb = (s8*)PORT2_SCTRL;
-    // }
-
-    pb = (s8*)PORT2_RX;
-    byte = *pb;
-
-    return byte;
+u8 read(void)
+{
+    vs8* pb = (s8*)PORT2_RX;
+    return *pb;
 }
 
 void _outbyte(u8 c)
@@ -85,20 +81,27 @@ void _outbyte(u8 c)
 int main()
 {
     serial_init();
+
+    u16 pos = 0;
     while (TRUE) {
         print_sctrl();
         print_ctrl();
 
-        for (u8 i = 0; i < 10; i++) {
-            _outbyte((u8)'0' + i);
+        if (can_read()) {
+            u8 data = read();
+            char buffer[2];
+            buffer[0] = (char)data;
+            const u16 max_x = 39;
+            u16 pos_x = pos % max_x;
+            u16 pos_y = pos / max_x;
+            VDP_drawText(buffer, pos_x, pos_y + 8);
+            pos++;
+            if (pos > 300) {
+                pos = 0;
+            }
         }
-        // VDP_waitVSync();
 
-        u8 data = _inbyte();
-        char buffer[5] = "    ";
-        buffer[0] = (char)data;
-        VDP_drawText(buffer, 1, 1);
-        // VDP_waitVSync();
+        VDP_waitVSync();
     }
     return 0;
 }
