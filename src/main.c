@@ -1,4 +1,5 @@
 #include <genesis.h>
+#include <vdp.h>
 
 #define PORT2_CTRL 0xA1000B
 #define PORT2_SCTRL 0xA10019
@@ -9,6 +10,8 @@
 #define SCTRL_1200_BPS 0xB0
 #define SCTRL_2400_BPS 0x70
 #define SCTRL_4800_BPS 0x30
+
+#define SCTRL_RINT 0x8
 
 const u16 min_y = 10;
 const u16 max_x = 39;
@@ -23,19 +26,35 @@ struct Cursor {
 
 #define GET_BIT(var, bit) ((var & (1 << bit)) == (1 << bit))
 
+static u16 int_count = 0;
+
 static void increment_cursor(Cursor* cur);
 
-void serial_init(void)
+void ext_int_callback(void) {
+    int_count++;
+}
+
+static void set_sctrl(u16 value)
 {
     vs8* pb;
     pb = (s8*)PORT2_SCTRL;
-    /* S-CTRL is for the status, etc. of each port's mode change, baud rate and
-       SERIAL.*/
-    *pb = SCTRL_1200_BPS;
+    *pb = value;
+}
 
-    vs8* pb2;
-    pb2 = (s8*)PORT2_CTRL;
-    *pb2 = 0x7F; // TH-Int:OFF, PC6..PC0: OUTPUT.
+static void set_ctrl(u16 value)
+{
+    vs8* pb;
+    pb = (s8*)PORT2_CTRL;
+    *pb = value;
+}
+
+void serial_init(void)
+{
+    set_sctrl(SCTRL_1200_BPS | SCTRL_RINT);
+    set_ctrl(0x7F); // TH-Int:OFF, PC6..PC0: OUTPUT.
+    VDP_setReg(0xB, 0x08); // Enable IE2 (enable external interrupts)
+    SYS_setExtIntCallback(&ext_int_callback);
+    SYS_setInterruptMaskLevel(1);
 }
 
 void print_sctrl(void)
@@ -119,10 +138,15 @@ int main()
         print_sctrl();
         print_ctrl();
 
+        char text[4];
+        sprintf(text, "%d", int_count);
+        VDP_drawText(text, 0, 20);
+
         if (can_read()) {
             u8 data = read();
             char buffer[2];
             buffer[0] = (char)data;
+            buffer[1] = 0;
 
             VDP_drawText(buffer, cur.x, cur.y + min_y);
             increment_cursor(&cur);
