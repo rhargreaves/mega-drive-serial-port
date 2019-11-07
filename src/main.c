@@ -30,7 +30,7 @@ void print_sctrl(void)
     vs8* pb;
     pb = (s8*)PORT2_SCTRL;
     s8 data = *pb;
-    VDP_drawText("BPS1 BPS0 SIN  SOUT RINT RERR RRDY TFUL", 0, 2);
+
     for (u16 i = 0; i < 8; i++) {
         char text[2];
         sprintf(text, "%d", GET_BIT(data, 7 - i));
@@ -43,7 +43,7 @@ void print_ctrl(void)
     vs8* pb;
     pb = (s8*)PORT2_CTRL;
     s8 data = *pb;
-    VDP_drawText("INT  PC6  PC5  PC4  PC3  PC2  PC1  PC0", 0, 5);
+
     for (u16 i = 0; i < 8; i++) {
         char text[2];
         sprintf(text, "%d", GET_BIT(data, 7 - i));
@@ -82,7 +82,16 @@ int main()
 {
     serial_init();
 
-    u16 pos = 0;
+    const u16 min_y = 10;
+    const u16 max_y = 15;
+
+    u16 pos_x = 0;
+    u16 pos_y = min_y;
+
+    VDP_drawText("Recv:", 0, 9);
+    VDP_drawText("INT  PC6  PC5  PC4  PC3  PC2  PC1  PC0", 0, 5);
+    VDP_drawText("BPS1 BPS0 SIN  SOUT RINT RERR RRDY TFUL", 0, 2);
+
     while (TRUE) {
         print_sctrl();
         print_ctrl();
@@ -92,16 +101,19 @@ int main()
             char buffer[2];
             buffer[0] = (char)data;
             const u16 max_x = 39;
-            u16 pos_x = pos % max_x;
-            u16 pos_y = pos / max_x;
-            VDP_drawText(buffer, pos_x, pos_y + 8);
-            pos++;
-            if (pos > 300) {
-                pos = 0;
-            }
-        }
 
-        VDP_waitVSync();
+            pos_x++;
+            if (pos_x > max_x) {
+                pos_y++;
+                pos_x = 0;
+            }
+            if (pos_y > max_y) {
+                pos_y = min_y;
+            }
+            VDP_drawText(buffer, pos_x, pos_y);
+        } else {
+            VDP_waitVSync();
+        }
     }
     return 0;
 }
