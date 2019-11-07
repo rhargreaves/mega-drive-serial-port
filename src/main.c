@@ -88,9 +88,12 @@ int main()
     u16 pos_x = 0;
     u16 pos_y = min_y;
 
-    VDP_drawText("Recv:", 0, 9);
-    VDP_drawText("INT  PC6  PC5  PC4  PC3  PC2  PC1  PC0", 0, 5);
+    VDP_drawText("Mega Drive Serial Port Diagnostics", 3, 0);
     VDP_drawText("BPS1 BPS0 SIN  SOUT RINT RERR RRDY TFUL", 0, 2);
+    VDP_drawText("INT  PC6  PC5  PC4  PC3  PC2  PC1  PC0", 0, 5);
+    VDP_drawText("Recv:", 0, 9);
+
+
 
     while (TRUE) {
         print_sctrl();
@@ -109,6 +112,7 @@ int main()
             }
             if (pos_y > max_y) {
                 pos_y = min_y;
+                VDP_clearTextArea(0, min_y, max_x + 1, max_y - min_y + 1);
             }
             VDP_drawText(buffer, pos_x, pos_y);
         } else {
