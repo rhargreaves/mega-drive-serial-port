@@ -28,11 +28,8 @@ struct Cursor {
 
 static u16 int_count = 0;
 
+u8 read(void);
 static void increment_cursor(Cursor* cur);
-
-void ext_int_callback(void) {
-    int_count++;
-}
 
 static void set_sctrl(u16 value)
 {
@@ -46,6 +43,14 @@ static void set_ctrl(u16 value)
     vs8* pb;
     pb = (s8*)PORT2_CTRL;
     *pb = value;
+}
+
+static char buffer[256];
+
+static void ext_int_callback(void)
+{
+    buffer[int_count] = read();
+    int_count++;
 }
 
 void serial_init(void)
@@ -144,11 +149,11 @@ int main()
 
         if (can_read()) {
             u8 data = read();
-            char buffer[2];
-            buffer[0] = (char)data;
-            buffer[1] = 0;
+            char buf[2];
+            buf[0] = (char)data;
+            buf[1] = 0;
 
-            VDP_drawText(buffer, cur.x, cur.y + min_y);
+            VDP_drawText(buf, cur.x, cur.y + min_y);
             increment_cursor(&cur);
             if(cur.x == 0 && cur.y == 0)
             {
@@ -157,6 +162,7 @@ int main()
         } else {
             VDP_waitVSync();
         }
+        VDP_drawText(buffer, 0, 22);
     }
     return 0;
 }
