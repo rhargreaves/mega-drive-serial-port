@@ -17,6 +17,8 @@
 #define SCTRL_RRDY 0x2
 #define SCTRL_RINT 0x8
 
+#define BUFFER_LEN 2048
+
 const u16 min_y = 10;
 const u16 max_x = 39;
 const u16 max_lines = 5;
@@ -30,7 +32,9 @@ struct Cursor {
 
 #define GET_BIT(var, bit) ((var & (1 << bit)) == (1 << bit))
 
-static u16 int_count = 0;
+static u16 read_head = 0;
+static u16 write_head = 0;
+static u8 ui_dirty = FALSE;
 
 u8 read(void);
 static void increment_cursor(Cursor* cur);
@@ -49,19 +53,20 @@ static void set_ctrl(u16 value)
     *pb = value;
 }
 
-static char buffer[256];
+static char buffer[BUFFER_LEN];
 
 static void ext_int_callback(void)
 {
-    buffer[int_count] = read();
-    int_count++;
+    buffer[write_head++] = read();
+    ui_dirty = TRUE;
 }
 
 void serial_init(void)
 {
-    set_sctrl(SCTRL_1200_BPS | SCTRL_RINT);
+    set_sctrl(SCTRL_4800_BPS | SCTRL_RINT);
     set_ctrl(0x7F); // TH-Int:OFF, PC6..PC0: OUTPUT.
-    VDP_setReg(VDP_MODE_REG_3, VDP_IE2); // Enable IE2 (enable external interrupts)
+ //   VDP_setReg(
+  //      VDP_MODE_REG_3, VDP_IE2); // Enable IE2 (enable external interrupts)
     SYS_setExtIntCallback(&ext_int_callback);
     SYS_setInterruptMaskLevel(1);
 }
@@ -121,7 +126,7 @@ void _outbyte(u8 c)
 
 static void increment_cursor(Cursor* cur)
 {
-    Cursor *cursor = cur;
+    Cursor* cursor = cur;
     cursor->x++;
     if (cursor->x > max_x) {
         cursor->y++;
@@ -132,6 +137,26 @@ static void increment_cursor(Cursor* cur)
     }
 }
 
+static void read_direct(Cursor* cur)
+{
+    while (can_read()) {
+        buffer[write_head++] = read();
+        ui_dirty = TRUE;
+    }
+}
+
+static void read_from_buffer(Cursor* cur)
+{
+    if (write_head > read_head) {
+        u8 data = buffer[read_head++];
+        char buf[2] = { (char)data, 0 };
+        VDP_drawText(buf, cur->x, cur->y + min_y);
+        increment_cursor(cur);
+        if (cur->x == 0 && cur->y == 0) {
+            VDP_clearTextArea(0, min_y, max_x + 1, max_lines + 1);
+        }
+    }
+}
 
 int main()
 {
@@ -146,27 +171,15 @@ int main()
     while (TRUE) {
         print_sctrl();
         print_ctrl();
+        read_direct(&cur);
+        read_from_buffer(&cur);
 
-        char text[4];
-        sprintf(text, "%d", int_count);
-        VDP_drawText(text, 0, 20);
-
-        if (can_read()) {
-            u8 data = read();
-            char buf[2];
-            buf[0] = (char)data;
-            buf[1] = 0;
-
-            VDP_drawText(buf, cur.x, cur.y + min_y);
-            increment_cursor(&cur);
-            if(cur.x == 0 && cur.y == 0)
-            {
-                VDP_clearTextArea(0, min_y, max_x + 1, max_lines + 1);
-            }
-        } else {
-            VDP_waitVSync();
+        if(ui_dirty) {
+            char text[5];
+            sprintf(text, "%d", BUFFER_LEN - write_head);
+            VDP_drawText(text, 0, 24);
+            ui_dirty = FALSE;
         }
-        VDP_drawText(buffer, 0, 22);
     }
     return 0;
 }
