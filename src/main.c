@@ -6,11 +6,15 @@
 #define PORT2_TX 0xA10015
 #define PORT2_RX 0xA10017
 
+#define VDP_MODE_REG_3 0xB
+#define VDP_IE2 0x08
+
 #define SCTRL_300_BPS 0xF0
 #define SCTRL_1200_BPS 0xB0
 #define SCTRL_2400_BPS 0x70
 #define SCTRL_4800_BPS 0x30
 
+#define SCTRL_RRDY 0x2
 #define SCTRL_RINT 0x8
 
 const u16 min_y = 10;
@@ -57,7 +61,7 @@ void serial_init(void)
 {
     set_sctrl(SCTRL_1200_BPS | SCTRL_RINT);
     set_ctrl(0x7F); // TH-Int:OFF, PC6..PC0: OUTPUT.
-    VDP_setReg(0xB, 0x08); // Enable IE2 (enable external interrupts)
+    VDP_setReg(VDP_MODE_REG_3, VDP_IE2); // Enable IE2 (enable external interrupts)
     SYS_setExtIntCallback(&ext_int_callback);
     SYS_setInterruptMaskLevel(1);
 }
@@ -91,7 +95,7 @@ void print_ctrl(void)
 u8 can_read(void)
 {
     vs8* pb = (s8*)PORT2_SCTRL;
-    return *pb & 0x02;
+    return *pb & SCTRL_RRDY;
 }
 
 u8 read(void)
