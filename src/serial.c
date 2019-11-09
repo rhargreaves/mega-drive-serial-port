@@ -11,14 +11,14 @@ static void extIntCallback(void)
     readReadyCallback();
 }
 
-static void set_sctrl(u16 value)
+static void setSCtrl(u16 value)
 {
     vs8* pb;
     pb = (s8*)PORT2_SCTRL;
     *pb = value;
 }
 
-static void set_ctrl(u16 value)
+static void setCtrl(u16 value)
 {
     vs8* pb;
     pb = (s8*)PORT2_CTRL;
@@ -51,8 +51,8 @@ void serial_setReadyToReceiveCallback(_voidCallback* cb)
 
 void serial_init(u8 sctrlFlags)
 {
-    set_sctrl(sctrlFlags);
-    set_ctrl(CTRL_PCS_OUT);
+    setSCtrl(sctrlFlags);
+    setCtrl(CTRL_PCS_OUT);
     if (sctrlFlags & SCTRL_RINT) {
         VDP_setReg(VDP_MODE_REG_3, VDP_IE2);
         SYS_setExtIntCallback(&extIntCallback);
