@@ -29,8 +29,8 @@ jobs:
           command: |
             VERSION=$(cat ./bin/version.txt)
             FILENAME=mega-drive-serial-port-${VERSION}.bin
-            mv ./out/rom.bin ./bin/${FILENAME}
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${VERSION} ./bin/${FILENAME}
+            mv ./out/rom.bin ./out/${FILENAME}
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${VERSION} ./out/${FILENAME}
 workflows:
   version: 2
   build_and_release:
