@@ -178,7 +178,7 @@ int main()
     VDP_drawText("Mega Drive Serial Port Diagnostics", 3, 0);
     VDP_drawText("Read Buffer:", 0, 4);
 
-    u8 sctrlFlags = SCTRL_1200_BPS | SCTRL_SIN | SCTRL_SOUT;
+    u8 sctrlFlags = SCTRL_4800_BPS | SCTRL_SIN | SCTRL_SOUT;
     if (USE_RINT) {
         sctrlFlags |= SCTRL_RINT;
     }
