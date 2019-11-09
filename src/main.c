@@ -110,27 +110,40 @@ void serial_init(void)
     SYS_setInterruptMaskLevel(INT_MASK_LEVEL_ENABLE_ALL);
 }
 
+static u16 get_baud_rate(u16 sctrl)
+{
+    u16 baudRate;
+    switch (sctrl & 0xC0) {
+    case SCTRL_300_BPS:
+        baudRate = 300;
+        break;
+    case SCTRL_1200_BPS:
+        baudRate = 1200;
+        break;
+    case SCTRL_2400_BPS:
+        baudRate = 2400;
+        break;
+    default:
+        baudRate = 4800;
+        break;
+    }
+    return baudRate;
+}
+
 void print_sctrl(void)
 {
     vs8* pb;
     pb = (s8*)PORT2_SCTRL;
-    s8 data = *pb;
-    for (u16 i = 0; i < 8; i++) {
-        char text[2];
-        sprintf(text, "%d", GET_BIT(data, 7 - i));
-        VDP_drawText(text, i * 5, 3);
-    }
-}
+    s8 sctrl = *pb;
 
-void print_ctrl(void)
-{
-    vs8* pb;
-    pb = (s8*)PORT2_CTRL;
-    s8 data = *pb;
+    char baudRateText[9];
+    sprintf(baudRateText, "%d bps", get_baud_rate(sctrl));
+    VDP_drawText(baudRateText, 0, 6);
+
     for (u16 i = 0; i < 8; i++) {
         char text[2];
-        sprintf(text, "%d", GET_BIT(data, 7 - i));
-        VDP_drawText(text, i * 5, 6);
+        sprintf(text, "%d", GET_BIT(sctrl, 7 - i));
+        VDP_drawText(text, i * 5, 3);
     }
 }
 
@@ -189,11 +202,9 @@ int main()
 {
     VDP_drawText("Mega Drive Serial Port Diagnostics", 3, 0);
     VDP_drawText("BPS1 BPS0 SIN  SOUT RINT RERR RRDY TFUL", 0, 2);
-    VDP_drawText("INT  PC6  PC5  PC4  PC3  PC2  PC1  PC0", 0, 5);
     VDP_drawText("Read Buffer:", 0, 10);
 
     serial_init();
-    print_ctrl();
     Cursor cur = { 0, 0 };
     while (TRUE) {
         print_sctrl();
