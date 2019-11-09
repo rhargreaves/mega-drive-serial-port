@@ -18,16 +18,18 @@
 #define SCTRL_2400_BPS 0x40
 #define SCTRL_4800_BPS 0x00
 
+#define SCTRL_TFUL 0x1
 #define SCTRL_RRDY 0x2
+#define SCTRL_RERR 0x4
 #define SCTRL_RINT 0x8
 
 #define INT_MASK_LEVEL_ENABLE_ALL 1
 
 #define BUFFER_LEN 2048
 
-const u16 min_y = 11;
+const u16 min_y = 6;
 const u16 max_x = 39;
-const u16 max_lines = 5;
+const u16 max_lines = 10;
 
 typedef struct Cursor Cursor;
 
@@ -138,13 +140,29 @@ void print_sctrl(void)
 
     char baudRateText[9];
     sprintf(baudRateText, "%d bps", get_baud_rate(sctrl));
-    VDP_drawText(baudRateText, 0, 6);
+    VDP_drawText(baudRateText, 0, 2);
 
-    for (u16 i = 0; i < 8; i++) {
-        char text[2];
-        sprintf(text, "%d", GET_BIT(sctrl, 7 - i));
-        VDP_drawText(text, i * 5, 3);
+    if ((sctrl & SCTRL_RERR) == SCTRL_RERR) {
+        VDP_setTextPalette(PAL0);
+    } else {
+        VDP_setTextPalette(PAL1);
     }
+    VDP_drawText("RERR", 10, 2);
+
+    if ((sctrl & SCTRL_RRDY) == SCTRL_RRDY) {
+        VDP_setTextPalette(PAL0);
+    } else {
+        VDP_setTextPalette(PAL1);
+    }
+     VDP_drawText("RRDY", 15, 2);
+
+    if ((sctrl & SCTRL_TFUL) == SCTRL_TFUL) {
+        VDP_setTextPalette(PAL0);
+    } else {
+        VDP_setTextPalette(PAL1);
+    }
+    VDP_drawText("TFUL", 20, 2);
+    VDP_setTextPalette(PAL0);
 }
 
 static void increment_cursor(Cursor* cur)
@@ -163,7 +181,7 @@ static void increment_cursor(Cursor* cur)
 static void read_direct(Cursor* cur)
 {
     while (can_read()) {
-        buffer[write_head++] = read();
+        write_buffer(read());
         ui_dirty = TRUE;
     }
 }
@@ -201,21 +219,21 @@ static u16 buffer_free(void)
 int main()
 {
     VDP_drawText("Mega Drive Serial Port Diagnostics", 3, 0);
-    VDP_drawText("BPS1 BPS0 SIN  SOUT RINT RERR RRDY TFUL", 0, 2);
-    VDP_drawText("Read Buffer:", 0, 10);
+    VDP_drawText("Read Buffer:", 0, 4);
 
     serial_init();
     Cursor cur = { 0, 0 };
     while (TRUE) {
         print_sctrl();
-        //  read_direct(&cur);
+        // read_direct(&cur);
         read_from_buffer(&cur);
         if (ui_dirty) {
             char text[32];
             sprintf(text, "Bytes Free: %-4d", buffer_free());
-            VDP_drawText(text, 0, 25);
+            VDP_drawText(text, 18, 4);
             ui_dirty = FALSE;
         }
+        VDP_waitVSync();
     }
     return 0;
 }
