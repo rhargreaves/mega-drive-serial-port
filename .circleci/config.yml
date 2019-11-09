@@ -13,7 +13,7 @@ jobs:
             ./docker-make all
 
       - persist_to_workspace:
-          root: bin
+          root: out
           paths:
             - version.txt
             - out.bin
@@ -23,13 +23,13 @@ jobs:
       - image: cibuilds/github:0.10
     steps:
       - attach_workspace:
-          at: ./bin
+          at: ./out
       - run:
           name: "Publish Release on GitHub"
           command: |
             VERSION=$(cat ./bin/version.txt)
             FILENAME=mega-drive-serial-port-${VERSION}.bin
-            mv ./bin/out.bin ./bin/${FILENAME}
+            mv ./out/rom.bin ./bin/${FILENAME}
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${VERSION} ./bin/${FILENAME}
 workflows:
   version: 2
