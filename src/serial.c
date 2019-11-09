@@ -59,3 +59,15 @@ void serial_init(u8 sctrlFlags)
         SYS_setInterruptMaskLevel(INT_MASK_LEVEL_ENABLE_ALL);
     }
 }
+
+void serial_send(u8 data)
+{
+    vu8* pb = (vu8*)PORT2_TX;
+    *pb = data;
+}
+
+bool serial_sendReady(void)
+{
+    vu8* pb = (vu8*)PORT2_SCTRL;
+    return !((*pb & SCTRL_TFUL) == SCTRL_TFUL);
+}

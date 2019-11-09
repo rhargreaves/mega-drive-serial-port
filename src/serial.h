@@ -26,3 +26,5 @@ void serial_setReadReadyCallback(_voidCallback* cb);
 bool serial_readReady(void);
 u8 serial_read(void);
 u8 serial_sctrl(void);
+void serial_send(u8 data);
+bool serial_sendReady(void);

@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <vdp.h>
 
+const bool DO_READ = FALSE;
+const bool DO_WRITE = TRUE;
 const bool USE_RINT = TRUE;
 
 const u16 BUFFER_MIN_Y = 6;
@@ -176,7 +178,7 @@ int main()
     VDP_drawText("Mega Drive Serial Port Diagnostics", 3, 0);
     VDP_drawText("Read Buffer:", 0, 4);
 
-    u8 sctrlFlags = SCTRL_4800_BPS | SCTRL_SIN | SCTRL_SOUT;
+    u8 sctrlFlags = SCTRL_1200_BPS | SCTRL_SIN | SCTRL_SOUT;
     if (USE_RINT) {
         sctrlFlags |= SCTRL_RINT;
     }
@@ -186,11 +188,22 @@ int main()
     Cursor cur = { 0, 0 };
     while (TRUE) {
         printSCtrl();
-        if (!USE_RINT) {
-            readSerialIntoBuffer(&cur);
+
+        if (DO_READ) {
+            if (!USE_RINT) {
+                readSerialIntoBuffer(&cur);
+            }
+            readFromBuffer(&cur);
+            printBufferFree();
         }
-        readFromBuffer(&cur);
-        printBufferFree();
+        if (DO_WRITE) {
+            for (u8 i = 0; i < 10; i++) {
+                while (!serial_sendReady())
+                    ;
+                serial_send((u8)'0' + i);
+            }
+        }
+
         VDP_waitVSync();
     }
     return 0;
