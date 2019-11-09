@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <vdp.h>
 
-const bool DO_READ = TRUE;
-const bool DO_WRITE = TRUE;
+const bool DO_RECEIVE = TRUE;
+const bool DO_SEND = TRUE;
 const bool USE_RINT = TRUE;
 
 const u16 BUFFER_MIN_Y = 6;
@@ -171,12 +171,28 @@ static void printBufferFree(void)
     }
 }
 
-int main()
+static void receive(Cursor* cur)
+{
+    if (!USE_RINT) {
+        readSerialIntoBuffer(cur);
+    }
+    readFromBuffer(cur);
+    printBufferFree();
+}
+
+static void send(void)
+{
+    for (u8 i = 'a'; i <= 'z'; i++) {
+        serial_sendWhenReady(i);
+    }
+    serial_sendWhenReady('\n');
+}
+
+static void init(void)
 {
     VDP_setPaletteColor((PAL1 * 16) + 15, RGB24_TO_VDPCOLOR(0x444444));
-
     VDP_drawText("Mega Drive Serial Port Diagnostics", 3, 0);
-    VDP_drawText("Read Buffer:", 0, 4);
+    VDP_drawText("Recv Buffer:", 0, 4);
 
     u8 sctrlFlags = SCTRL_4800_BPS | SCTRL_SIN | SCTRL_SOUT;
     if (USE_RINT) {
@@ -184,26 +200,26 @@ int main()
     }
     serial_init(sctrlFlags);
     serial_setReadReadyCallback(&ui_callback);
+}
 
+static void sendAndReceiveLoop(void)
+{
     Cursor cur = { 0, 0 };
     while (TRUE) {
         printSCtrl();
-
-        if (DO_READ) {
-            if (!USE_RINT) {
-                readSerialIntoBuffer(&cur);
-            }
-            readFromBuffer(&cur);
-            printBufferFree();
+        if (DO_RECEIVE) {
+            receive(&cur);
         }
-        if (DO_WRITE) {
-            for (u8 i = '0'; i <= 'z'; i++) {
-                serial_sendWhenReady(i);
-            }
-            serial_sendWhenReady('\n');
+        if (DO_SEND) {
+            send();
         }
-
         VDP_waitVSync();
     }
+}
+
+int main()
+{
+    init();
+    sendAndReceiveLoop();
     return 0;
 }
