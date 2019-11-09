@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <vdp.h>
 
-const bool USE_RINT = FALSE;
+const bool USE_RINT = TRUE;
 
 const u16 BUFFER_MIN_Y = 6;
 const u16 BUFFER_MAX_X = 39;
