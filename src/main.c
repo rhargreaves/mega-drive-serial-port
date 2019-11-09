@@ -6,7 +6,7 @@
 
 const u16 min_y = 6;
 const u16 max_x = 39;
-const u16 max_lines = 10;
+const u16 max_lines = 6;
 
 typedef struct Cursor Cursor;
 
@@ -125,6 +125,7 @@ static void read_direct(Cursor* cur)
 
 static void read_from_buffer(Cursor* cur)
 {
+    VDP_setTextPalette(PAL1);
     if (can_read_buffer()) {
         u8 data = read_buffer();
         char buf[2] = { (char)data, 0 };
@@ -135,6 +136,7 @@ static void read_from_buffer(Cursor* cur)
         }
         ui_dirty = TRUE;
     }
+    VDP_setTextPalette(PAL0);
 }
 
 static u16 buffer_free(void)
@@ -170,7 +172,7 @@ int main()
         read_from_buffer(&cur);
         if (ui_dirty) {
             char text[32];
-            sprintf(text, "%-4d Free", buffer_free());
+            sprintf(text, "%4d Free", buffer_free());
             VDP_drawText(text, 28, 4);
             ui_dirty = FALSE;
         }
