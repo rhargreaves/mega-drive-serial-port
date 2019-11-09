@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <vdp.h>
 
-const bool DO_READ = FALSE;
+const bool DO_READ = TRUE;
 const bool DO_WRITE = TRUE;
 const bool USE_RINT = TRUE;
 
@@ -197,11 +197,10 @@ int main()
             printBufferFree();
         }
         if (DO_WRITE) {
-            for (u8 i = 0; i < 10; i++) {
-                while (!serial_sendReady())
-                    ;
-                serial_send((u8)'0' + i);
+            for (u8 i = '0'; i <= 'z'; i++) {
+                serial_sendWhenReady(i);
             }
+            serial_sendWhenReady('\n');
         }
 
         VDP_waitVSync();

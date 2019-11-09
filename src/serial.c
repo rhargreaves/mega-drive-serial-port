@@ -71,3 +71,10 @@ bool serial_sendReady(void)
     vu8* pb = (vu8*)PORT2_SCTRL;
     return !((*pb & SCTRL_TFUL) == SCTRL_TFUL);
 }
+
+void serial_sendWhenReady(u8 data)
+{
+    while (!serial_sendReady())
+        ;
+    serial_send(data);
+}

@@ -28,3 +28,4 @@ u8 serial_read(void);
 u8 serial_sctrl(void);
 void serial_send(u8 data);
 bool serial_sendReady(void);
+void serial_sendWhenReady(u8 data);
