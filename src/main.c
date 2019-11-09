@@ -169,39 +169,39 @@ static void read_from_buffer(Cursor* cur)
     }
 }
 
+static u16 buffer_free(void)
+{
+    /*
+    ----R--------W-----
+    xxxxx        xxxxxx
+
+    ----W--------R-----
+        xxxxxxxxx
+    */
+    if (write_head >= read_head) {
+        return BUFFER_LEN - (write_head - read_head);
+    } else {
+        return read_head - write_head;
+    }
+}
+
 int main()
 {
-    serial_init();
-
     VDP_drawText("Mega Drive Serial Port Diagnostics", 3, 0);
     VDP_drawText("BPS1 BPS0 SIN  SOUT RINT RERR RRDY TFUL", 0, 2);
     VDP_drawText("INT  PC6  PC5  PC4  PC3  PC2  PC1  PC0", 0, 5);
     VDP_drawText("Read Buffer:", 0, 10);
 
+    serial_init();
     print_ctrl();
-
     Cursor cur = { 0, 0 };
     while (TRUE) {
         print_sctrl();
         //  read_direct(&cur);
         read_from_buffer(&cur);
-
         if (ui_dirty) {
-            /*
-            ----R--------W-----
-            xxxxx        xxxxxx
-
-            ----W--------R-----
-                xxxxxxxxx
-            */
-            u16 bufferLeft;
-            if (write_head >= read_head) {
-                bufferLeft = BUFFER_LEN - (write_head - read_head);
-            } else {
-                bufferLeft = read_head - write_head;
-            }
             char text[32];
-            sprintf(text, "Bytes Free: %-4d", bufferLeft);
+            sprintf(text, "Bytes Free: %-4d", buffer_free());
             VDP_drawText(text, 0, 25);
             ui_dirty = FALSE;
         }
