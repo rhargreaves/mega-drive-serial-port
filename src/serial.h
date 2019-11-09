@@ -22,10 +22,10 @@
 #define SCTRL_RINT 0x8
 
 void serial_init(u8 sctrlFlags);
-void serial_setReadReadyCallback(_voidCallback* cb);
-bool serial_readReady(void);
-u8 serial_read(void);
+void serial_setReadyToReceiveCallback(_voidCallback* cb);
+bool serial_readyToReceive(void);
+u8 serial_receive(void);
 u8 serial_sctrl(void);
 void serial_send(u8 data);
-bool serial_sendReady(void);
+bool serial_readyToSend(void);
 void serial_sendWhenReady(u8 data);

@@ -32,19 +32,19 @@ u8 serial_sctrl(void)
     return *pb;
 }
 
-bool serial_readReady(void)
+bool serial_readyToReceive(void)
 {
     vs8* pb = (s8*)PORT2_SCTRL;
     return *pb & SCTRL_RRDY;
 }
 
-u8 serial_read(void)
+u8 serial_receive(void)
 {
     vs8* pb = (s8*)PORT2_RX;
     return *pb;
 }
 
-void serial_setReadReadyCallback(_voidCallback* cb)
+void serial_setReadyToReceiveCallback(_voidCallback* cb)
 {
     readReadyCallback = cb;
 }
@@ -66,7 +66,7 @@ void serial_send(u8 data)
     *pb = data;
 }
 
-bool serial_sendReady(void)
+bool serial_readyToSend(void)
 {
     vu8* pb = (vu8*)PORT2_SCTRL;
     return !((*pb & SCTRL_TFUL) == SCTRL_TFUL);
@@ -74,7 +74,7 @@ bool serial_sendReady(void)
 
 void serial_sendWhenReady(u8 data)
 {
-    while (!serial_sendReady())
+    while (!serial_readyToSend())
         ;
     serial_send(data);
 }

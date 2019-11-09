@@ -50,7 +50,7 @@ static void writeToBuffer(u8 data)
     }
 }
 
-static u16 get_baud_rate(u16 sctrl)
+static u16 baudRate(u16 sctrl)
 {
     u16 baudRate;
     switch (sctrl & 0xC0) {
@@ -75,7 +75,7 @@ void printSCtrl(void)
     s8 sctrl = serial_sctrl();
 
     char baudRateText[9];
-    sprintf(baudRateText, "%d bps", get_baud_rate(sctrl));
+    sprintf(baudRateText, "%d bps", baudRate(sctrl));
     VDP_drawText(baudRateText, 0, 2);
 
     if ((sctrl & SCTRL_RERR) == SCTRL_RERR) {
@@ -103,7 +103,7 @@ void printSCtrl(void)
 
 static void ui_callback(void)
 {
-    writeToBuffer(serial_read());
+    writeToBuffer(serial_receive());
     ui_dirty = TRUE;
 }
 
@@ -120,10 +120,10 @@ static void incrementCursor(Cursor* cur)
     }
 }
 
-static void readSerialIntoBuffer(Cursor* cur)
+static void receiveSerialIntoBuffer(Cursor* cur)
 {
-    while (serial_readReady()) {
-        writeToBuffer(serial_read());
+    while (serial_readyToReceive()) {
+        writeToBuffer(serial_receive());
         ui_dirty = TRUE;
     }
 }
@@ -174,7 +174,7 @@ static void printBufferFree(void)
 static void receive(Cursor* cur)
 {
     if (!USE_RINT) {
-        readSerialIntoBuffer(cur);
+        receiveSerialIntoBuffer(cur);
     }
     readFromBuffer(cur);
     printBufferFree();
@@ -182,7 +182,7 @@ static void receive(Cursor* cur)
 
 static void send(void)
 {
-    for (u8 i = 'a'; i <= 'z'; i++) {
+    for (u8 i = '0'; i <= '9'; i++) {
         serial_sendWhenReady(i);
     }
     serial_sendWhenReady('\n');
@@ -199,7 +199,7 @@ static void init(void)
         sctrlFlags |= SCTRL_RINT;
     }
     serial_init(sctrlFlags);
-    serial_setReadReadyCallback(&ui_callback);
+    serial_setReadyToReceiveCallback(&ui_callback);
 }
 
 static void sendAndReceiveLoop(void)
