@@ -1,12 +1,15 @@
 #include "serial.h"
 #include <genesis.h>
+#include <stdbool.h>
 #include <vdp.h>
 
-#define BUFFER_LEN 2048
+const bool USE_RINT = FALSE;
 
-const u16 min_y = 6;
-const u16 max_x = 39;
-const u16 max_lines = 6;
+const u16 BUFFER_MIN_Y = 6;
+const u16 BUFFER_MAX_X = 39;
+const u16 BUFFER_MAX_LINES = 6;
+
+#define BUFFER_LEN 2048
 
 typedef struct Cursor Cursor;
 
@@ -15,33 +18,33 @@ struct Cursor {
     u16 y;
 };
 
-static u16 read_head = 0;
-static u16 write_head = 0;
+static u16 readHead = 0;
+static u16 writeHead = 0;
 static u8 ui_dirty = FALSE;
 
-static void increment_cursor(Cursor* cur);
+static void incrementCursor(Cursor* cur);
 
 static char buffer[BUFFER_LEN];
 
-static u8 can_read_buffer(void)
+static u8 canReadBuffer(void)
 {
-    return write_head != read_head;
+    return writeHead != readHead;
 }
 
-static u8 read_buffer(void)
+static u8 readBuffer(void)
 {
-    u8 data = buffer[read_head++];
-    if (read_head == BUFFER_LEN) {
-        read_head = 0;
+    u8 data = buffer[readHead++];
+    if (readHead == BUFFER_LEN) {
+        readHead = 0;
     }
     return data;
 }
 
-static void write_buffer(u8 data)
+static void writeToBuffer(u8 data)
 {
-    buffer[write_head++] = data;
-    if (write_head == BUFFER_LEN) {
-        write_head = 0;
+    buffer[writeHead++] = data;
+    if (writeHead == BUFFER_LEN) {
+        writeHead = 0;
     }
 }
 
@@ -65,7 +68,7 @@ static u16 get_baud_rate(u16 sctrl)
     return baudRate;
 }
 
-void print_sctrl(void)
+void printSCtrl(void)
 {
     s8 sctrl = serial_sctrl();
 
@@ -98,48 +101,49 @@ void print_sctrl(void)
 
 static void ui_callback(void)
 {
-    write_buffer(serial_read());
+    writeToBuffer(serial_read());
     ui_dirty = TRUE;
 }
 
-static void increment_cursor(Cursor* cur)
+static void incrementCursor(Cursor* cur)
 {
     Cursor* cursor = cur;
     cursor->x++;
-    if (cursor->x > max_x) {
+    if (cursor->x > BUFFER_MAX_X) {
         cursor->y++;
         cursor->x = 0;
     }
-    if (cursor->y > max_lines) {
+    if (cursor->y > BUFFER_MAX_LINES) {
         cursor->y = 0;
     }
 }
 
-static void read_direct(Cursor* cur)
+static void readSerialIntoBuffer(Cursor* cur)
 {
     while (serial_readReady()) {
-        write_buffer(read());
+        writeToBuffer(serial_read());
         ui_dirty = TRUE;
     }
 }
 
-static void read_from_buffer(Cursor* cur)
+static void readFromBuffer(Cursor* cur)
 {
     VDP_setTextPalette(PAL1);
-    if (can_read_buffer()) {
-        u8 data = read_buffer();
+    if (canReadBuffer()) {
+        u8 data = readBuffer();
         char buf[2] = { (char)data, 0 };
-        VDP_drawText(buf, cur->x, cur->y + min_y);
-        increment_cursor(cur);
+        VDP_drawText(buf, cur->x, cur->y + BUFFER_MIN_Y);
+        incrementCursor(cur);
         if (cur->x == 0 && cur->y == 0) {
-            VDP_clearTextArea(0, min_y, max_x + 1, max_lines + 1);
+            VDP_clearTextArea(
+                0, BUFFER_MIN_Y, BUFFER_MAX_X + 1, BUFFER_MAX_LINES + 1);
         }
         ui_dirty = TRUE;
     }
     VDP_setTextPalette(PAL0);
 }
 
-static u16 buffer_free(void)
+static u16 bufferFree(void)
 {
     /*
     ----R--------W-----
@@ -148,10 +152,20 @@ static u16 buffer_free(void)
     ----W--------R-----
         xxxxxxxxx
     */
-    if (write_head >= read_head) {
-        return BUFFER_LEN - (write_head - read_head);
+    if (writeHead >= readHead) {
+        return BUFFER_LEN - (writeHead - readHead);
     } else {
-        return read_head - write_head;
+        return readHead - writeHead;
+    }
+}
+
+static void printBufferFree(void)
+{
+    if (ui_dirty) {
+        char text[32];
+        sprintf(text, "%4d Free", bufferFree());
+        VDP_drawText(text, 28, 4);
+        ui_dirty = FALSE;
     }
 }
 
@@ -162,20 +176,21 @@ int main()
     VDP_drawText("Mega Drive Serial Port Diagnostics", 3, 0);
     VDP_drawText("Read Buffer:", 0, 4);
 
-    serial_init(SCTRL_4800_BPS | SCTRL_RINT | SCTRL_SIN | SCTRL_SOUT);
+    u8 sctrlFlags = SCTRL_4800_BPS | SCTRL_SIN | SCTRL_SOUT;
+    if (USE_RINT) {
+        sctrlFlags |= SCTRL_RINT;
+    }
+    serial_init(sctrlFlags);
     serial_setReadReadyCallback(&ui_callback);
 
     Cursor cur = { 0, 0 };
     while (TRUE) {
-        print_sctrl();
-        // read_direct(&cur);
-        read_from_buffer(&cur);
-        if (ui_dirty) {
-            char text[32];
-            sprintf(text, "%4d Free", buffer_free());
-            VDP_drawText(text, 28, 4);
-            ui_dirty = FALSE;
+        printSCtrl();
+        if (!USE_RINT) {
+            readSerialIntoBuffer(&cur);
         }
+        readFromBuffer(&cur);
+        printBufferFree();
         VDP_waitVSync();
     }
     return 0;
