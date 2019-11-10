@@ -1,17 +1,14 @@
+#include "buffer.h"
 #include "serial.h"
 #include <genesis.h>
 #include <stdbool.h>
 #include <vdp.h>
 
-const bool DO_RECEIVE = TRUE;
-const bool DO_SEND = TRUE;
 const bool USE_RINT = TRUE;
 
 const u16 BUFFER_MIN_Y = 6;
 const u16 BUFFER_MAX_X = 39;
 const u16 BUFFER_MAX_LINES = 6;
-
-#define BUFFER_LEN 2048
 
 typedef struct Cursor Cursor;
 
@@ -20,37 +17,11 @@ struct Cursor {
     u16 y;
 };
 
-static u16 readHead = 0;
-static u16 writeHead = 0;
 static u8 ui_dirty = FALSE;
 
 static void incrementCursor(Cursor* cur);
 
-static char buffer[BUFFER_LEN];
-
-static u8 canReadBuffer(void)
-{
-    return writeHead != readHead;
-}
-
-static u8 readBuffer(void)
-{
-    u8 data = buffer[readHead++];
-    if (readHead == BUFFER_LEN) {
-        readHead = 0;
-    }
-    return data;
-}
-
-static void writeToBuffer(u8 data)
-{
-    buffer[writeHead++] = data;
-    if (writeHead == BUFFER_LEN) {
-        writeHead = 0;
-    }
-}
-
-static u16 baudRate(u16 sctrl)
+static u16 baudRate(u8 sctrl)
 {
     u16 baudRate;
     switch (sctrl & 0xC0) {
@@ -103,7 +74,7 @@ void printSCtrl(void)
 
 static void ui_callback(void)
 {
-    writeToBuffer(serial_receive());
+    buffer_write(serial_receive());
     ui_dirty = TRUE;
 }
 
@@ -123,7 +94,7 @@ static void incrementCursor(Cursor* cur)
 static void receiveSerialIntoBuffer(Cursor* cur)
 {
     while (serial_readyToReceive()) {
-        writeToBuffer(serial_receive());
+        buffer_write(serial_receive());
         ui_dirty = TRUE;
     }
 }
@@ -131,8 +102,8 @@ static void receiveSerialIntoBuffer(Cursor* cur)
 static void readFromBuffer(Cursor* cur)
 {
     VDP_setTextPalette(PAL1);
-    if (canReadBuffer()) {
-        u8 data = readBuffer();
+    if (buffer_canRead()) {
+        u8 data = buffer_read();
         char buf[2] = { (char)data, 0 };
         VDP_drawText(buf, cur->x, cur->y + BUFFER_MIN_Y);
         incrementCursor(cur);
@@ -145,27 +116,11 @@ static void readFromBuffer(Cursor* cur)
     VDP_setTextPalette(PAL0);
 }
 
-static u16 bufferFree(void)
-{
-    /*
-    ----R--------W-----
-    xxxxx        xxxxxx
-
-    ----W--------R-----
-        xxxxxxxxx
-    */
-    if (writeHead >= readHead) {
-        return BUFFER_LEN - (writeHead - readHead);
-    } else {
-        return readHead - writeHead;
-    }
-}
-
 static void printBufferFree(void)
 {
     if (ui_dirty) {
         char text[32];
-        sprintf(text, "%4d Free", bufferFree());
+        sprintf(text, "%4d Free", buffer_available());
         VDP_drawText(text, 28, 4);
         ui_dirty = FALSE;
     }
@@ -204,6 +159,9 @@ static void init(void)
 
 static void sendAndReceiveLoop(void)
 {
+    const bool DO_RECEIVE = TRUE;
+    const bool DO_SEND = TRUE;
+
     Cursor cur = { 0, 0 };
     while (TRUE) {
         printSCtrl();
