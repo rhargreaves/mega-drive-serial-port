@@ -6,7 +6,7 @@ jobs:
       - checkout
       - run:
           name: Make output directory
-          command: mkdir bin
+          command: mkdir out
       - run:
           name: Build & Test
           command: |
@@ -27,7 +27,7 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            VERSION=$(cat ./bin/version.txt)
+            VERSION=$(cat ./out/version.txt)
             FILENAME=mega-drive-serial-port-${VERSION}.bin
             mv ./out/rom.bin ./out/${FILENAME}
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${VERSION} ./out/${FILENAME}
