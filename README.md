@@ -4,6 +4,18 @@ Tools and docs for using a SEGA Mega Drive controller port in serial mode
 
 ## Diagnostics Tool
 
+When the ROM starts, it:
+
+- Enables Serial Mode on Port 2
+- Sets speed to [4800 bps](https://github.com/rhargreaves/mega-drive-serial-port/blob/8b287d3986b7dcea66f2a9463d649aaceb826bf1/src/main.c#L137)
+- Receives data into a 2K buffer on hardware interrupt ([can be configured to poll instead](https://github.com/rhargreaves/mega-drive-serial-port/blob/8b287d3986b7dcea66f2a9463d649aaceb826bf1/src/main.c#L7), but is not reliable at speeds greater than 1200 bps)
+- Send a continuous stream of `0123456789\n`
+- Prints any received data to the screen.
+
+<p align="center">
+    <img src="https://github.com/rhargreaves/mega-drive-serial-port/raw/master/docs/screen.jpg" width="500" />
+</p>
+
 ### Build
 
 Docker:
