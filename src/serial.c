@@ -13,34 +13,34 @@ static void extIntCallback(void)
 
 static void setSCtrl(u16 value)
 {
-    vs8* pb;
-    pb = (s8*)PORT2_SCTRL;
+    vu8* pb;
+    pb = (u8*)PORT2_SCTRL;
     *pb = value;
 }
 
 static void setCtrl(u16 value)
 {
-    vs8* pb;
-    pb = (s8*)PORT2_CTRL;
+    vu8* pb;
+    pb = (u8*)PORT2_CTRL;
     *pb = value;
 }
 
 u8 serial_sctrl(void)
 {
-    vs8* pb;
-    pb = (s8*)PORT2_SCTRL;
+    vu8* pb;
+    pb = (u8*)PORT2_SCTRL;
     return *pb;
 }
 
 bool serial_readyToReceive(void)
 {
-    vs8* pb = (s8*)PORT2_SCTRL;
+    vu8* pb = (u8*)PORT2_SCTRL;
     return *pb & SCTRL_RRDY;
 }
 
 u8 serial_receive(void)
 {
-    vs8* pb = (s8*)PORT2_RX;
+    vu8* pb = (u8*)PORT2_RX;
     return *pb;
 }
 
