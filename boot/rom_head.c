@@ -19,7 +19,7 @@ __attribute__((externally_visible)) const struct {
     char modem_support[12]; /* Modem Support (24) */
     char notes[40]; /* Memo (40) */
     char region[16]; /* Country Support (16) */
-} rom_header = { "SEGA MEGA DRIVE ", "(C)ROB.H 2019   ",
+} rom_header = { "SEGA SSF        ", "(C)FLEMTEAM 2013",
     "SAMPLE PROGRAM                                  ",
     "SAMPLE PROGRAM                                  ", "GM 00000000-00",
     0x0000, "JD              ", 0x00000000, 0x00100000, 0x00FF0000, 0x00FFFFFF,
