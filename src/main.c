@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <vdp.h>
 
-const bool USE_RINT = TRUE;
+const bool USE_RECV_INT = TRUE;
 
 const u16 BUFFER_MIN_Y = 6;
 const u16 BUFFER_MAX_X = 39;
@@ -18,8 +18,6 @@ struct Cursor {
 };
 
 static u8 ui_dirty = FALSE;
-
-static void incrementCursor(Cursor* cur);
 
 static u16 baudRate(u8 sctrl)
 {
@@ -35,34 +33,27 @@ static u16 baudRate(u8 sctrl)
     }
 }
 
-void printSCtrl(void)
+static void printBaudRate(void)
 {
-    s8 sctrl = serial_sctrl();
-
     char baudRateText[9];
-    sprintf(baudRateText, "%d bps", baudRate(sctrl));
+    sprintf(baudRateText, "%d bps", baudRate(serial_sctrl()));
     VDP_drawText(baudRateText, 0, 2);
+}
 
-    if ((sctrl & SCTRL_RERR) == SCTRL_RERR) {
-        VDP_setTextPalette(PAL0);
-    } else {
-        VDP_setTextPalette(PAL1);
-    }
-    VDP_drawText("RERR", 10, 2);
+static void printSCtrlFlags(void)
+{
+    const u8 flags[] = { SCTRL_RERR, SCTRL_RRDY, SCTRL_TFUL };
+    const char* names[] = { "RERR", "RRDY", "TFUL" };
 
-    if ((sctrl & SCTRL_RRDY) == SCTRL_RRDY) {
-        VDP_setTextPalette(PAL0);
-    } else {
-        VDP_setTextPalette(PAL1);
+    s8 sctrl = serial_sctrl();
+    for (u16 i = 0; i < 3; i++) {
+        if (sctrl & flags[i]) {
+            VDP_setTextPalette(PAL0);
+        } else {
+            VDP_setTextPalette(PAL1);
+        }
+        VDP_drawText(names[i], 10 + (i * 5), 2);
     }
-    VDP_drawText("RRDY", 15, 2);
-
-    if ((sctrl & SCTRL_TFUL) == SCTRL_TFUL) {
-        VDP_setTextPalette(PAL0);
-    } else {
-        VDP_setTextPalette(PAL1);
-    }
-    VDP_drawText("TFUL", 20, 2);
     VDP_setTextPalette(PAL0);
 }
 
@@ -122,7 +113,7 @@ static void printBufferFree(void)
 
 static void receive(Cursor* cur)
 {
-    if (!USE_RINT) {
+    if (!USE_RECV_INT) {
         receiveSerialIntoBuffer(cur);
     }
     readFromBuffer(cur);
@@ -144,11 +135,13 @@ static void init(void)
     VDP_drawText("Recv Buffer:", 0, 4);
 
     u8 sctrlFlags = SCTRL_4800_BPS | SCTRL_SIN | SCTRL_SOUT;
-    if (USE_RINT) {
+    if (USE_RECV_INT) {
         sctrlFlags |= SCTRL_RINT;
     }
     serial_init(sctrlFlags);
     serial_setReadyToReceiveCallback(&ui_callback);
+
+    printBaudRate();
 }
 
 static void sendAndReceiveLoop(void)
@@ -158,7 +151,7 @@ static void sendAndReceiveLoop(void)
 
     Cursor cur = { 0, 0 };
     while (TRUE) {
-        printSCtrl();
+        printSCtrlFlags();
         if (DO_RECEIVE) {
             receive(&cur);
         }
