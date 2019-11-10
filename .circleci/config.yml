@@ -16,7 +16,7 @@ jobs:
           root: out
           paths:
             - version.txt
-            - out.bin
+            - rom.bin
 
   publish-github-release:
     docker:
