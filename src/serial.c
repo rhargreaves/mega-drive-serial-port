@@ -4,7 +4,7 @@
 #define VDP_IE2 0x08
 #define INT_MASK_LEVEL_ENABLE_ALL 1
 
-_voidCallback* readReadyCallback;
+static _voidCallback* readReadyCallback;
 
 static void extIntCallback(void)
 {
