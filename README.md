@@ -1,4 +1,4 @@
-# Mega Drive Serial Port
+# Mega Drive Serial Port [![CircleCI](https://circleci.com/gh/rhargreaves/mega-drive-serial-port.svg?style=svg)](https://circleci.com/gh/rhargreaves/mega-drive-serial-port) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/rhargreaves/mega-drive-serial-port?style=plastic)](https://github.com/rhargreaves/mega-drive-serial-port/releases)
 
 Tools and docs for using a SEGA Mega Drive controller port in serial mode
 
