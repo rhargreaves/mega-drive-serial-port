@@ -23,22 +23,16 @@ static void incrementCursor(Cursor* cur);
 
 static u16 baudRate(u8 sctrl)
 {
-    u16 baudRate;
     switch (sctrl & 0xC0) {
     case SCTRL_300_BPS:
-        baudRate = 300;
-        break;
+        return 300;
     case SCTRL_1200_BPS:
-        baudRate = 1200;
-        break;
+        return 1200;
     case SCTRL_2400_BPS:
-        baudRate = 2400;
-        break;
+        return 2400;
     default:
-        baudRate = 4800;
-        break;
+        return 4800;
     }
-    return baudRate;
 }
 
 void printSCtrl(void)
