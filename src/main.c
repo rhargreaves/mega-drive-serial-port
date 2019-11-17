@@ -158,7 +158,6 @@ static void sendAndReceiveLoop(void)
         if (DO_SEND) {
             send();
         }
-        VDP_waitVSync();
     }
 }
 
